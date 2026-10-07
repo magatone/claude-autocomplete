@@ -28,6 +28,22 @@ Answer `y` to add the marketplace, then pick a scope (user scope is the default)
 3. Use the up and down arrow keys to pick a word.
 4. Press `Tab` to replace what you typed with the selected word.
 
+## Typo help
+
+Misspelt a word? When nothing matches what you typed, the plugin suggests the words you
+probably meant, each marked `typo?`. Pick one and press `Tab` to fix it.
+
+```
+   deploy        typo?
+   deployment    typo?
+❯ depoly
+```
+
+It forgives one slip: two letters swapped (`depoly`), a missing letter (`funtion`),
+an extra letter (`commmit`) or a wrong letter (`deplay`). It starts at four letters,
+assumes the first letter is right, and stays quiet while you type correctly.
+In our test it caught 58 of 60 common typos and never showed up while typing correctly.
+
 ## Shortcuts
 
 Save a short key for a phrase you type often, then type the key and press `Tab`.
@@ -62,6 +78,14 @@ acronyms such as `TypeScript` or `LLM`, kept in their own case).
 Up to three of these come first, so `comm` suggests `command` and `commit` before `community`.
 When you type three letters or fewer, only one leads, so everyday words still show up.
 To add words, put one per line in any `.txt` file in `data/terms/`.
+
+## What's new
+
+- **0.5.0** Typo help: suggests the word you meant when nothing matches, marked `typo?`.
+- **0.4.0** About 300 more work terms: AI, AX (bringing AI into a team), dev tooling, acronyms and AI tools.
+- **0.3.0** Shortcuts: `/shortcut add ptg push to github`, or ask Claude.
+- **0.2.0** Work vocabulary by role, so `comm` suggests `commit` first.
+- **0.1.0** First release: English word suggestions in the prompt box.
 
 ## Develop
 

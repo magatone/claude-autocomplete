@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { complete, makeIndex, makeTerms } from './complete'
+import { complete, fixTypos, makeIndex, makeTerms, makeTypoPool } from './complete'
 
 const words = makeIndex([['the', -2], ['recommend', -9], ['don\'t', -9], ['record', -9], ['recommendation', -10], ['re-do', -12], ['123', -12]])
 
@@ -38,4 +38,31 @@ test('proper names keep their case', () => {
 
 test('short tokens let only one work term lead', () => {
   expect(complete(general, 'com', terms)).toEqual(['commit', 'community', 'common', 'committee', 'commission'])
+})
+
+const typoGeneral = makeIndex([['deploy', -8], ['review', -8], ['receive', -8], ['about', -5], ['abort', -9], ['function', -8], ['busy', -7]])
+const typoTerms = makeTerms(['deployment\nKubernetes\n'], typoGeneral)
+const pool = makeTypoPool(typoGeneral, typoTerms)
+const known = new Set(pool.map(w => w.toLowerCase()))
+
+test('fixes the four kinds of slips: swap, missing, extra, wrong letter', () => {
+  expect(fixTypos(pool, known, 'depoly')).toContain('deploy')
+  expect(fixTypos(pool, known, 'fucntion')).toEqual(['function'])
+  expect(fixTypos(pool, known, 'kuberentes')).toEqual(['Kubernetes'])
+  expect(fixTypos(pool, known, 'funtion')).toEqual(['function'])
+  expect(fixTypos(pool, known, 'functtion')).toEqual(['function'])
+  expect(fixTypos(pool, known, 'fumction')).toEqual(['function'])
+})
+
+test('works mid-word and keeps the typed case', () => {
+  expect(fixTypos(pool, known, 'depol')).toContain('deploy')
+  expect(fixTypos(pool, known, 'Depoly')).toContain('Deploy')
+})
+
+test('stays quiet when it should', () => {
+  expect(fixTypos(pool, known, 'dpl')).toEqual([])
+  expect(fixTypos(pool, known, 'about')).toEqual([])
+  expect(fixTypos(pool, known, 'xeploy')).toEqual([])
+  expect(fixTypos(pool, known, 'fnuciton')).toEqual([])
+  expect(fixTypos(pool, known, 'dep10y')).toEqual([])
 })

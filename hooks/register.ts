@@ -1,5 +1,5 @@
 import type { Register } from 'claude-code'
-import { complete, makeIndex, makeTerms } from './complete'
+import { complete, fixTypos, makeIndex, makeTerms, makeTypoPool } from './complete'
 import { applyShortcut, matchShortcuts, runShortcutCommand, type Shortcuts } from './shortcuts'
 
 const STORE_KEY = 'shortcuts'
@@ -11,6 +11,8 @@ const asShortcuts = (value: unknown): Shortcuts => (value && typeof value === 'o
 export const register: Register = on => {
   let general: string[] | undefined
   let terms: string[] = []
+  let pool: string[] = []
+  let known = new Set<string>()
   // Cached copy of what $.store holds; the engine wants $.store spelled out at each call, hence no helper.
   let shortcuts: Shortcuts | undefined
 
@@ -61,11 +63,16 @@ export const register: Register = on => {
       general = makeIndex(JSON.parse(await $.fs.read(`${data}/wordfreq-en-25000-log.json`)))
       const files = (await $.fs.list(`${data}/terms`)).filter(f => f.name.endsWith('.txt'))
       terms = makeTerms(await Promise.all(files.map(f => $.fs.read(`${data}/terms/${f.name}`))), general)
+      pool = makeTypoPool(general, terms)
+      known = new Set(pool.map(w => w.toLowerCase()))
     }
     shortcuts ??= asShortcuts(await $.store.get(STORE_KEY))
-    // Shortcuts lead, then words; five rows in all.
-    const mine = [...matchShortcuts(shortcuts, e.token), ...complete(general, e.token, terms)].slice(0, 5)
+    // Shortcuts lead, then words; five rows in all. Only when nothing matches do typo fixes fill in, marked as guesses.
+    const exact = [...matchShortcuts(shortcuts, e.token), ...complete(general, e.token, terms)].slice(0, 5)
+    const mine = exact.length
+      ? exact.map(text => ({ text }))
+      : fixTypos(pool, known, e.token).map(text => ({ text, description: 'typo?' }))
     const below = await next(e)
-    return { suggestions: [...below.suggestions, ...mine.map(text => ({ text }))] }
+    return { suggestions: [...below.suggestions, ...mine] }
   })
 }
