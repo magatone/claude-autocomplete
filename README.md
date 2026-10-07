@@ -28,6 +28,31 @@ Answer `y` to add the marketplace, then pick a scope (user scope is the default)
 3. Use the up and down arrow keys to pick a word.
 4. Press `Tab` to replace what you typed with the selected word.
 
+## Shortcuts
+
+Save a short key for a phrase you type often, then type the key and press `Tab`.
+For example, register `ptg` for `push to github`: typing `ptg` shows `push to github`
+at the top of the suggestions.
+
+Register shortcuts either way. Both use the same list, which stays after you restart Claude Code.
+
+**With a command**
+
+```
+/shortcut add ptg push to github
+/shortcut list
+/shortcut remove ptg
+```
+
+**By asking Claude**
+
+> Add a shortcut: ptg means push to github
+
+You can also ask Claude to show or remove your shortcuts.
+
+A key is two or more letters or digits starting with a letter (`ptg`, `pr2`), not case sensitive.
+Shortcuts appear before word suggestions.
+
 ## Work vocabulary
 
 Besides everyday English, the plugin knows about 600 words people use at work in Claude Code,

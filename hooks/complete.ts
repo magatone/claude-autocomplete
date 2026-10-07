@@ -48,6 +48,6 @@ export function complete(general: readonly string[], token: string, terms: reado
   // Keep the case the person started with: "Recom" -> "Recommend", "RECOM" -> "RECOMMEND".
   // Proper names ("TypeScript") keep their own case unless the person types in all caps.
   if (token === token.toUpperCase()) return out.map(w => w.toUpperCase())
-  if (token[0] === token[0].toUpperCase()) return out.map(w => w[0].toUpperCase() + w.slice(1))
+  if (token.charAt(0) === token.charAt(0).toUpperCase()) return out.map(w => w.charAt(0).toUpperCase() + w.slice(1))
   return out
 }
