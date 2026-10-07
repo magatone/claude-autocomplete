@@ -28,6 +28,15 @@ Answer `y` to add the marketplace, then pick a scope (user scope is the default)
 3. Use the up and down arrow keys to pick a word.
 4. Press `Tab` to replace what you typed with the selected word.
 
+## Work vocabulary
+
+Besides everyday English, the plugin knows about 600 words people use at work in Claude Code,
+grouped by role in `data/terms/`: `common`, `planning`, `frontend`, `backend`, `infra`,
+`design`, and `tools` (proper names such as `TypeScript`, kept in their own case).
+Up to three of these come first, so `comm` suggests `command` and `commit` before `community`.
+When you type three letters or fewer, only one leads, so everyday words still show up.
+To add words, put one per line in any `.txt` file in `data/terms/`.
+
 ## Develop
 
 ```
@@ -46,7 +55,7 @@ will be added once there is demand for them.
 
 ## License
 
-- Code: MIT, see `LICENSE`.
+- Code and the role lists in `data/terms/`: MIT, see `LICENSE`.
 - Word list (`data/wordfreq-en-25000-log.json`): from
   [aparrish/wordfreq-en-25000](https://github.com/aparrish/wordfreq-en-25000),
   exported from [wordfreq](https://github.com/rspeer/wordfreq) by Robyn Speer.
