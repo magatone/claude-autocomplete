@@ -55,9 +55,10 @@ Shortcuts appear before word suggestions.
 
 ## Work vocabulary
 
-Besides everyday English, the plugin knows about 600 words people use at work in Claude Code,
-grouped by role in `data/terms/`: `common`, `planning`, `frontend`, `backend`, `infra`,
-`design`, and `tools` (proper names such as `TypeScript`, kept in their own case).
+Besides everyday English, the plugin knows about 900 words people use at work in Claude Code,
+grouped in `data/terms/`: `common`, `planning`, `frontend`, `backend`, `infra`, `devtools`,
+`design`, `ai` (LLMs and agents), `ax` (bringing AI into a team), and `tools` (proper names and
+acronyms such as `TypeScript` or `LLM`, kept in their own case).
 Up to three of these come first, so `comm` suggests `command` and `commit` before `community`.
 When you type three letters or fewer, only one leads, so everyday words still show up.
 To add words, put one per line in any `.txt` file in `data/terms/`.

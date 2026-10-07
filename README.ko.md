@@ -54,10 +54,10 @@ Claude Code 터미널 세션에서 다음을 입력합니다.
 
 ## 업무 용어
 
-일상 영어 외에도 Claude Code에서 업무할 때 많이 쓰는 단어 약 600개를 직군별로 나눠
+일상 영어 외에도 Claude Code에서 업무할 때 많이 쓰는 단어 약 900개를 분야별로 나눠
 `data/terms/`에 담았습니다: `common`(공통), `planning`(기획), `frontend`(프론트엔드),
-`backend`(백엔드·서버), `infra`(인프라·엔지니어링), `design`(디자인), `tools`(`TypeScript` 같은
-고유 이름, 대소문자 그대로 유지). 이 단어들이 최대 3개까지 먼저 나오기 때문에 `comm`을 치면
+`backend`(백엔드·서버), `infra`(인프라·엔지니어링), `devtools`(개발 도구·워크플로), `design`(디자인),
+`ai`(LLM·에이전트), `ax`(AI 도입·전환), `tools`(`TypeScript`, `LLM` 같은 고유 이름과 약어, 대소문자 그대로 유지). 이 단어들이 최대 3개까지 먼저 나오기 때문에 `comm`을 치면
 `community`보다 `command`, `commit`이 먼저 뜹니다. 세 글자 이하로 쳤을 때는 1개만 먼저 나와서
 일상 단어도 함께 보입니다. 단어를 추가하려면 `data/terms/` 안의 `.txt` 파일에 한 줄에 하나씩 적으면 됩니다.
 
