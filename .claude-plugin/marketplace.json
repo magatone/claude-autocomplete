@@ -1,0 +1,6 @@
+{
+  "name": "english-autocomplete",
+  "owner": { "name": "magatone" },
+  "description": "English word autocomplete for the Claude Code prompt box",
+  "plugins": [{ "name": "english-autocomplete", "source": "./" }]
+}
