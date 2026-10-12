@@ -1,1 +1,5 @@
 .claude-plugin/types/
+
+# Generated Codex experiment artifacts.
+codex/source/
+codex/bin/

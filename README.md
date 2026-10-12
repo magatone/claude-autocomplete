@@ -13,6 +13,8 @@ Requires Claude Code 2.1.292 or later (uses the `prompt.autocomplete` plugin eve
 
 ## Install
 
+### Claude Code
+
 In a Claude Code terminal session:
 
 ```
@@ -20,6 +22,14 @@ In a Claude Code terminal session:
 ```
 
 Answer `y` to add the marketplace, then pick a scope (user scope is the default).
+
+### Codex CLI (source-build experiment)
+
+**codex-auto adds autocomplete to the native Codex input composer while using the existing Codex data home, account and settings.** It is a separate modified **Codex 0.161.0 CLI**, not an installable Codex plugin or skill. Suggestions use local vocabulary; normal conversations use your configured Codex provider.
+
+The source patch and Windows build/launch scripts are included under `codex/`. Compiled executables are not included. **Windows was tested locally; macOS source-build instructions are provided for testing and are unverified.** The Mac command keeps normal Codex startup and does not force `--no-daemon`; the Windows launcher reuses an installed managed server when available. Both modes use the same input composer and local data home.
+
+Follow [the exact Mac/Windows installation and test steps](codex/README.md). Official Codex updates do not update this fixed build. Typo correction and saved shortcuts below apply to the Claude plugin only.
 
 ## Usage
 
@@ -81,6 +91,8 @@ To add words, put one per line in any `.txt` file in `data/terms/`.
 
 ## What's new
 
+- **0.6.0** Separate CLI implementation for Codex: launch the modified native-composer experiment with `codex-auto`.
+
 - **0.5.0** Typo help: suggests the word you meant when nothing matches, marked `typo?`.
 - **0.4.0** About 300 more work terms: AI, AX (bringing AI into a team), dev tooling, acronyms and AI tools.
 - **0.3.0** Shortcuts: `/shortcut add ptg push to github`, or ask Claude.
@@ -96,7 +108,7 @@ claude plugin test ./claude-autocomplete
 
 ## Roadmap
 
-A Codex version is planned and coming soon.
+A native-composer Codex prototype was built as a separate modified CLI. Codex plugin/skill integration has not been implemented. See [setup and limitations](codex/README.md).
 
 ## Other languages
 
