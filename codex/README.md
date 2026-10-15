@@ -2,7 +2,7 @@
 
 A separate modified CLI adds English word suggestions to Codex's native composer and inherits the existing account, settings and sessions. The launcher matches the installed official Codex version to a verified prebuilt executable.
 
-**Status: local implementation and fixture checks completed. The first GitHub native build and publication have not run. No release index exists yet, so the new launcher cannot download a working CLI today. Existing installed commands were left unchanged.**
+**Status: local implementation and fixture checks completed. The first GitHub preview failed in preflight checks. CRLF and path-alias fixes require a new native preview. No release index exists yet, so the new launcher cannot download a working CLI today. Existing installed commands were left unchanged.**
 
 ## Run and update
 

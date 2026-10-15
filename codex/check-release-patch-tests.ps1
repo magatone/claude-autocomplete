@@ -6,13 +6,14 @@ if (-not (Test-Path -LiteralPath $checker -PathType Leaf)) {
 $checkRoot = Join-Path ([IO.Path]::GetTempPath()) ('codex-release-patch-check-' + [guid]::NewGuid())
 $source = Join-Path $checkRoot 'source with spaces'
 $patch = Join-Path $checkRoot 'feature.patch'
+$alias = Join-Path $checkRoot 'checkout alias'
 function Invoke-TestGit {
     & git @args
     if ($LASTEXITCODE -ne 0) { throw "Fixture git failed: $args" }
 }
-function Assert-Rejected($message) {
+function Assert-Rejected($message, $Checkout = $source) {
     $failure = $null
-    try { & $checker -Source $source -Patch $patch } catch { $failure = $_ }
+    try { & $checker -Source $Checkout -Patch $patch } catch { $failure = $_ }
     if ($null -eq $failure -or $failure.Exception.Message -notlike "*$message*") {
         throw "Expected rejection: $message. Actual: $failure"
     }
@@ -35,6 +36,11 @@ try {
     Invoke-TestGit -C $source add -- .
     Invoke-TestGit -C $source -c user.name='Codex Test' -c user.email='test@example.invalid' commit --quiet -m new-release
     $cleanBase = Invoke-TestGit -C $source rev-parse HEAD
+    $linkType = if ($env:OS -eq 'Windows_NT') { 'Junction' } else { 'SymbolicLink' }
+    New-Item -ItemType $linkType -Path $alias -Target $source | Out-Null
+    & $checker -Source $alias -Patch $patch
+    (Get-Item -LiteralPath $alias -Force).Delete()
+    Assert-Rejected 'Source must be the checkout root' (Join-Path $source 'codex-rs')
     & $checker -Source $source -Patch $patch
     $fixtureChecker = Join-Path $checkRoot 'check-release-patch.ps1'
     Copy-Item -LiteralPath $checker -Destination $fixtureChecker
@@ -57,12 +63,13 @@ try {
     [IO.File]::WriteAllText((Join-Path $source 'untracked.txt'), "keep`n")
     Assert-Rejected 'Checkout must be clean'
     if (-not (Test-Path -LiteralPath (Join-Path $source 'untracked.txt'))) { throw 'Untracked file was removed.' }
-    Write-Output 'PASS: feature-only check; lockfile excluded; clean checkout preserved; dirty/conflicting/untracked input rejected.'
+    Write-Output 'PASS: aliased checkout root accepted; nested directory rejected; feature-only check; lockfile excluded; clean checkout preserved; dirty/conflicting/untracked input rejected.'
 } finally {
     $resolvedRoot = [IO.Path]::GetFullPath($checkRoot)
     $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
     if (-not $resolvedRoot.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase)) {
         throw 'Refusing cleanup outside the temporary directory.'
     }
+    if (Test-Path -LiteralPath $alias) { (Get-Item -LiteralPath $alias -Force).Delete() }
     Remove-Item -LiteralPath $resolvedRoot -Recurse -Force
 }
