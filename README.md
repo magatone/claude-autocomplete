@@ -23,13 +23,11 @@ In a Claude Code terminal session:
 
 Answer `y` to add the marketplace, then pick a scope (user scope is the default).
 
-### Codex CLI (source-build experiment)
+### Codex CLI (version synchronization in development)
 
-**codex-auto adds autocomplete to the native Codex input composer while using the existing Codex data home, account and settings.** It is a separate modified **Codex 0.161.0 CLI**, not an installable Codex plugin or skill. Suggestions use local vocabulary; normal conversations use your configured Codex provider.
+codex-auto is a separate modified CLI that adds native word completion while sharing existing Codex credentials, settings and sessions. It downloads, verifies and caches a prebuilt executable matching the installed official version. codex-auto update pairs updates for existing npm installations.
 
-The source patch and Windows build/launch scripts are included under `codex/`. Compiled executables are not included. **Windows was tested locally; macOS source-build instructions are provided for testing and are unverified.** The Mac command keeps normal Codex startup and does not force `--no-daemon`; the Windows launcher reuses an installed managed server when available. Both modes use the same input composer and local data home.
-
-Follow [the exact Mac/Windows installation and test steps](codex/README.md). Official Codex updates do not update this fixed build. Typo correction and saved shortcuts below apply to the Claude plugin only.
+**Local Windows and WSL checks passed; initial GitHub native builds/publication and physical Mac checks remain pending.** End users need no Python, Git, Rust or compiler. See [Codex setup and validation limits](codex/README.md). Typo correction and shortcuts below apply to the Claude plugin.
 
 ## Usage
 
