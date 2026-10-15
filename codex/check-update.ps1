@@ -82,3 +82,5 @@ function Get-CodexBinaryForVersion {
     if (-not $resolved.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe cleanup root.' }
     Remove-Item -LiteralPath $resolved -Recurse -Force
 }
+# Expected child failures must not leak into the Actions shell exit status.
+exit 0

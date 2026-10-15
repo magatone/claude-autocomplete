@@ -41,3 +41,5 @@ Windows는 CRLF로 checkout한 here-string fixture의 기대값이 LF만 가정�
 Mac은 /var와 /private/var 경로 별칭을 다른 checkout으로 판단했다. Git --show-prefix로 실제 checkout 루트 여부를 검사하도록 수정했다. Windows junction 회귀로 수정 전 동일 실패를 재현했으며 수정 후 별칭 루트 허용·하위 디렉터리 거부·checkout 보호가 통과했다.
 
 PowerShell 7 공통 CI 검사 전체가 로컬에서 통과했다. 실제 Mac 수정본 실행·최적화 빌드는 재검증해야 한다. 이전 Re-run jobs는 이전 커밋으로 재실행하므로 수정 브랜치 또는 수정 병합 후 main에서 새 Run workflow를 사용한다. 버전 0.162.1, retry_failed=true, publish=false로 실행한다.
+
+수정 브랜치 실행 38668099082에서 양쪽 공통 검사와 Mac POSIX 검사는 성공했고 Mac은 네이티브 빌드 단계로 진입했다. Windows는 모든 fixture가 PASS한 뒤 마지막 의도적 실패의 LASTEXITCODE=1이 Actions shell로 전달되어 실패했다. 로컬에서도 Actions와 동일한 -Command 호출로 실패를 재현했고 check-update.ps1이 성공 시 명시적으로 exit 0 하도록 수정했다. 실패 assertions와 정리 오류는 여전히 nonzero로 종료한다. 같은 Actions 형태의 Windows 검사 전체가 exit 0으로 통과했다.
