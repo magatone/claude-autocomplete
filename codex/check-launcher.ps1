@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $checkRoot = Join-Path ([IO.Path]::GetTempPath()) ('codex-launcher-check-' + [guid]::NewGuid())
 $previousOutput = $env:CODEX_LAUNCHER_CHECK_OUTPUT
 $previousHome = $env:CODEX_HOME
@@ -8,6 +8,18 @@ New-Item -ItemType Directory -Path (Join-Path $checkRoot 'bin') | Out-Null
 try {
     $env:USERPROFILE = Join-Path $checkRoot 'profile'
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'run.ps1') -Destination $checkRoot
+    [IO.File]::WriteAllText((Join-Path $checkRoot 'sync.ps1'), @'
+function Get-OfficialCodexPath { return 'official-fixture' }
+function Get-CodexAutoBinary {
+    param($CodexPath)
+    [IO.File]::WriteAllText((Join-Path $PSScriptRoot 'sync-called'), $CodexPath)
+    return (Join-Path $PSScriptRoot 'bin/codex.exe')
+}
+'@)
+    [IO.File]::WriteAllText((Join-Path $checkRoot 'update.ps1'), @'
+[IO.File]::WriteAllText((Join-Path $PSScriptRoot 'update-called'), 'updated')
+exit 0
+'@)
     Add-Type -TypeDefinition @'
 using System;
 using System.IO;
@@ -36,7 +48,9 @@ public class LauncherStub {
         )
         foreach ($case in $cases) {
             $forwarded = $case.InputArgs
+            Remove-Item -LiteralPath (Join-Path $checkRoot 'sync-called') -ErrorAction SilentlyContinue
             & (Join-Path $checkRoot 'run.ps1') @forwarded
+            if (-not (Test-Path -LiteralPath (Join-Path $checkRoot 'sync-called'))) { throw 'Launcher bypassed version synchronization.' }
             if ($LASTEXITCODE -ne 7) { throw "Child exit was not preserved: $LASTEXITCODE" }
             if (Test-Path -LiteralPath (Join-Path $checkRoot 'state') -PathType Container) {
                 throw 'Launcher still creates an isolated home instead of sharing the caller home.'
@@ -61,7 +75,10 @@ public class LauncherStub {
     $expected = @($forwarded) + @('1', $managedHome, (Get-Location).ProviderPath)
     $actual = @(Get-Content -LiteralPath $env:CODEX_LAUNCHER_CHECK_OUTPUT)
     if (($actual -join "`n") -cne ($expected -join "`n")) { throw 'Existing shared daemon was not reused.' }
-    Write-Output 'PASS: shared CODEX_HOME, managed-server reuse, embedded fallback, exact arguments/cwd/parent environment and exit 7.'
+    Remove-Item -LiteralPath (Join-Path $checkRoot 'sync-called') -ErrorAction SilentlyContinue
+    & (Join-Path $checkRoot 'run.ps1') update
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath (Join-Path $checkRoot 'update-called')) -or (Test-Path -LiteralPath (Join-Path $checkRoot 'sync-called'))) { throw 'Update was forwarded into the composer instead of the manager.' }
+    Write-Output 'PASS: synchronization and update dispatch; shared CODEX_HOME, managed-server reuse, embedded fallback, exact arguments/cwd/parent environment and exit 7.'
 } finally {
     $env:CODEX_LAUNCHER_CHECK_OUTPUT = $previousOutput
     $env:CODEX_HOME = $previousHome

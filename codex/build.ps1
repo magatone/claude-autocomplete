@@ -1,6 +1,10 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $base = '979011409de0a60b52f179721948e65531d26144'
 $patch = Join-Path $PSScriptRoot 'inline-word-completion.patch'
+$patches = @()
+$metadataPatch = Join-Path $PSScriptRoot 'release-metadata-0.161.0.patch'
+if (Test-Path -LiteralPath $metadataPatch) { $patches += $metadataPatch }
+$patches += $patch
 $source = Join-Path $PSScriptRoot 'source'
 $cache = Join-Path $env:USERPROFILE '.cxl'
 if (-not (Test-Path -LiteralPath $patch -PathType Leaf)) { throw "Missing patch: $patch" }
@@ -32,13 +36,13 @@ try {
 } finally {
     Remove-Item -LiteralPath $diffFile -Force
 }
-$expectedDiff = ([IO.File]::ReadAllText($patch) -replace "`r`n", "`n").TrimEnd("`r", "`n")
+$expectedDiff = (($patches | ForEach-Object { [IO.File]::ReadAllText($_) -replace "`r`n", "`n" }) -join '').TrimEnd("`r", "`n")
 if ($actualDiff.Length -eq 0) {
-    Invoke-Git -C $source apply --check $patch
-    Invoke-Git -C $source apply $patch
+    foreach ($part in $patches) { Invoke-Git -C $source apply --check $part }
+    foreach ($part in $patches) { Invoke-Git -C $source apply $part }
     Invoke-Git -C $source add --intent-to-add -- .
 } elseif ($actualDiff -eq $expectedDiff) {
-    Invoke-Git -C $source apply --reverse --check $patch
+    foreach ($part in $patches) { Invoke-Git -C $source apply --reverse --check $part }
 } else {
     throw 'source changes differ from the packaged patch. Existing edits were not overwritten.'
 }

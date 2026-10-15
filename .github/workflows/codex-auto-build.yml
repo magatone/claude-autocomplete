@@ -1,0 +1,152 @@
+name: Build one Codex Auto version
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      revision:
+        required: true
+        type: string
+      commit:
+        required: true
+        type: string
+      patch_sha:
+        required: true
+        type: string
+      publish:
+        required: true
+        type: boolean
+permissions:
+  contents: read
+jobs:
+  build:
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            platform: windows-x64
+            architecture: X64
+          - os: macos-15
+            platform: macos-arm64
+            architecture: Arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_BUILD_JOBS: '2'
+      CARGO_PROFILE_RELEASE_DEBUG: '0'
+      CARGO_PROFILE_RELEASE_STRIP: symbols
+      MACOSX_DEPLOYMENT_TARGET: '14.0'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Verify runner and patch identity
+        shell: pwsh
+        env:
+          EXPECTED_ARCH: ${{ matrix.architecture }}
+          EXPECTED_PATCH: ${{ inputs.patch_sha }}
+        run: |
+          if ([Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString() -cne $env:EXPECTED_ARCH) { throw 'Wrong runner architecture.' }
+          if ((Get-FileHash codex/inline-word-completion.patch).Hash.ToLowerInvariant() -cne $env:EXPECTED_PATCH) { throw 'Patch changed since discovery.' }
+          $available = (Get-PSDrive -PSProvider FileSystem | Where-Object { $_.Root -eq [IO.Path]::GetPathRoot($env:RUNNER_TEMP) } | Select-Object -First 1).Free
+          if ($available -lt 8GB) { throw 'Less than 8 GiB available for the Rust build.' }
+      - name: Check common policies
+        shell: pwsh
+        run: |
+          ./codex/check-sync.ps1
+          ./codex/check-assets.ps1
+          ./codex/check-release-lock.ps1
+          ./codex/check-release-patch-tests.ps1
+          ./codex/ci/check-discovery.ps1
+          ./codex/ci/check-index.ps1
+          ./codex/ci/check-publish.ps1
+      - name: Check Windows PowerShell launcher and updater
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          ./codex/check-cache.ps1
+          ./codex/check-launcher.ps1
+          ./codex/check-update.ps1
+      - name: Check macOS shell launcher and updater
+        if: runner.os == 'macOS'
+        shell: sh
+        run: |
+          sh codex/check-sync.sh
+          sh codex/check-launcher.sh
+          sh codex/check-update.sh
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: codex-auto-cargo-${{ matrix.platform }}-${{ inputs.commit }}
+          restore-keys: codex-auto-cargo-${{ matrix.platform }}-
+      - id: build
+        name: Build exact official source and test native composer
+        shell: pwsh
+        env:
+          CODEX_VERSION: ${{ inputs.version }}
+          UPSTREAM_COMMIT: ${{ inputs.commit }}
+          BUILD_PLATFORM: ${{ matrix.platform }}
+        run: ./codex/ci/build.ps1 -Version $env:CODEX_VERSION -Commit $env:UPSTREAM_COMMIT -Platform $env:BUILD_PLATFORM
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: codex-${{ inputs.version }}-p${{ inputs.revision }}-${{ matrix.platform }}
+          path: ${{ steps.build.outputs.directory }}/*
+          if-no-files-found: error
+          retention-days: 7
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    concurrency:
+      group: codex-auto-publish
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          pattern: codex-${{ inputs.version }}-p${{ inputs.revision }}-*
+          merge-multiple: true
+          path: release-assets
+      - name: Verify paired artifacts and publish or preview
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CODEX_VERSION: ${{ inputs.version }}
+          PATCH_REVISION: ${{ inputs.revision }}
+          UPSTREAM_COMMIT: ${{ inputs.commit }}
+          PATCH_SHA: ${{ inputs.patch_sha }}
+          SHOULD_PUBLISH: ${{ inputs.publish }}
+        run: ./codex/ci/publish.ps1 -Version $env:CODEX_VERSION -Revision $env:PATCH_REVISION -Commit $env:UPSTREAM_COMMIT -PatchSha $env:PATCH_SHA -Directory ./release-assets -Preview:($env:SHOULD_PUBLISH -ne 'true')
+  record-failure:
+    needs: [build, publish]
+    if: always() && !cancelled() && (needs.build.result == 'failure' || needs.publish.result == 'failure')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    concurrency:
+      group: codex-auto-publish
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Remember failure to prevent repeated hourly attempts
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CODEX_VERSION: ${{ inputs.version }}
+          PATCH_REVISION: ${{ inputs.revision }}
+          PATCH_SHA: ${{ inputs.patch_sha }}
+        run: ./codex/ci/record-failure.ps1 -Version $env:CODEX_VERSION -Revision $env:PATCH_REVISION -PatchSha $env:PATCH_SHA
