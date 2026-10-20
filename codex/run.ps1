@@ -1,11 +1,8 @@
-﻿$ErrorActionPreference = 'Stop'
-if ($args.Count -gt 0 -and $args[0] -ceq 'update') {
-    if ($args.Count -ne 1) { throw 'Usage: codex-auto update' }
-    & (Join-Path $PSScriptRoot 'update.ps1')
-    exit $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
+$binary = Join-Path $PSScriptRoot 'bin/codex.exe'
+if (-not (Test-Path -LiteralPath $binary -PathType Leaf)) {
+    throw "Missing executable: $binary. Run build.ps1 first."
 }
-. (Join-Path $PSScriptRoot 'sync.ps1')
-$binary = Get-CodexAutoBinary -CodexPath (Get-OfficialCodexPath)
 
 # Reuse the user's installed server; an empty home still needs embedded startup.
 $sharedHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }

@@ -23,11 +23,20 @@ In a Claude Code terminal session:
 
 Answer `y` to add the marketplace, then pick a scope (user scope is the default).
 
-### Codex CLI (version synchronization in development)
+### Codex CLI (`codex-auto`, fixed version)
 
-codex-auto is a separate modified CLI that adds native word completion while sharing existing Codex credentials, settings and sessions. It downloads, verifies and caches a prebuilt executable matching the installed official version. codex-auto update pairs updates for existing npm installations.
+**Use `codex-auto` to run Codex CLI with native English word completion. This release is fixed at Codex 0.161.0 and does not support automatic updates.** Updating official `codex` does not update `codex-auto`; `codex-auto update` is not supported.
 
-**Local Windows and WSL checks passed; initial GitHub native builds/publication and physical Mac checks remain pending.** End users need no Python, Git, Rust or compiler. See [Codex setup and validation limits](codex/README.md). Typo correction and shortcuts below apply to the Claude plugin.
+It shares the existing local Codex account, settings and sessions. Type two English letters, select with Up/Down, and press Tab to insert. Enter sends your prompt. Typo correction and saved shortcuts below are Claude plugin features.
+
+This is a **source release**: build tools are required and no prebuilt executable is included. Windows was tested locally; macOS build instructions are unverified. Follow [the Windows/macOS installation steps](codex/README.md), then run:
+
+```sh
+codex-auto --version
+codex-auto
+```
+
+Expected version: `codex-cli 0.161.0`. Version synchronization and automatic-update experiments are paused and preserved on [`feat/codex-version-sync`](https://github.com/magatone/claude-autocomplete/tree/feat/codex-version-sync) and [draft PR #2](https://github.com/magatone/claude-autocomplete/pull/2).
 
 ## Usage
 
@@ -88,6 +97,8 @@ When you type three letters or fewer, only one leads, so everyday words still sh
 To add words, put one per line in any `.txt` file in `data/terms/`.
 
 ## What's new
+
+- **0.6.1** Document the usable fixed-version `codex-auto` CLI and pause automatic-update experiments. Source-build distribution; no prebuilt binaries.
 
 - **0.6.0** Separate CLI implementation for Codex: launch the modified native-composer experiment with `codex-auto`.
 
