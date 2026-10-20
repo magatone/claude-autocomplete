@@ -31,3 +31,15 @@ GitHub native release 빌드·실제 배포/다운로드·Actions 이메일 수�
 ## 다음 검증
 
 workflow를 기본 브랜치에 반영한 뒤 수동 version=0.162.1, publish=false로 네이티브 빌드를 확인한다. 성공 시 publish=true로 첫 배포 및 공유 인덱스를 만든다. 이후 ZIP 설치와 공식 버전 변경 후 다운로드를 Windows/Mac에서 확인한다. Mac 후보·Tab·Esc·한글 조합과 서버 연결은 실제 사용자 터미널에서 검사한다.
+
+## 2026-10-15 첫 GitHub 미리보기 실패와 수정
+
+[실행 38667389270](https://github.com/magatone/claude-autocomplete/actions/runs/38667389270): discovery 성공, Windows·macOS 모두 공통 사전 검사에서 실패했다. Rust 컴파일과 공개 배포는 실행되지 않았다.
+
+Windows는 CRLF로 checkout한 here-string fixture의 기대값이 LF만 가정해 실패했다. fixture를 명시적으로 LF로 정규화하고 CRLF lockfile 보존 검사는 유지했다. 수정 전 실패를 CRLF 파일 복사본으로 재현했고 수정 후 PowerShell 5.1·7.6.7에서 통과했다.
+
+Mac은 /var와 /private/var 경로 별칭을 다른 checkout으로 판단했다. Git --show-prefix로 실제 checkout 루트 여부를 검사하도록 수정했다. Windows junction 회귀로 수정 전 동일 실패를 재현했으며 수정 후 별칭 루트 허용·하위 디렉터리 거부·checkout 보호가 통과했다.
+
+PowerShell 7 공통 CI 검사 전체가 로컬에서 통과했다. 실제 Mac 수정본 실행·최적화 빌드는 재검증해야 한다. 이전 Re-run jobs는 이전 커밋으로 재실행하므로 수정 브랜치 또는 수정 병합 후 main에서 새 Run workflow를 사용한다. 버전 0.162.1, retry_failed=true, publish=false로 실행한다.
+
+수정 브랜치 실행 38668099082에서 양쪽 공통 검사와 Mac POSIX 검사는 성공했고 Mac은 네이티브 빌드 단계로 진입했다. Windows는 모든 fixture가 PASS한 뒤 마지막 의도적 실패의 LASTEXITCODE=1이 Actions shell로 전달되어 실패했다. 로컬에서도 Actions와 동일한 -Command 호출로 실패를 재현했고 check-update.ps1이 성공 시 명시적으로 exit 0 하도록 수정했다. 실패 assertions와 정리 오류는 여전히 nonzero로 종료한다. 같은 Actions 형태의 Windows 검사 전체가 exit 0으로 통과했다.

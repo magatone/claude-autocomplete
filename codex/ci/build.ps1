@@ -17,8 +17,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Rust installation failed.' }
 & (Join-Path $root 'codex/build-release.ps1') -Version $Version -Source $source -OutputDirectory $out
 Push-Location $workspace
 try {
-    foreach ($filter in @('word_completion::tests', 'bottom_pane::chat_composer::tests')) {
-        & cargo "+$toolchain" test --release --locked -p codex-tui --lib $filter | Tee-Object -Variable results
+    foreach ($filter in @('word_completion', 'chat_composer')) {
+        & cargo "+$toolchain" test --release --locked -p codex-tui --lib $filter -- --test-threads=1 | Tee-Object -Variable results
         if ($LASTEXITCODE -ne 0 -or ($results -join "`n") -notmatch 'test result: ok\. [1-9][0-9]* passed') { throw "Native TUI regression failed or matched no tests: $filter" }
     }
 } finally { Pop-Location }

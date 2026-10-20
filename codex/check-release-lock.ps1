@@ -23,6 +23,8 @@ source = "registry+https://example.invalid"
 name = "extra"
 version = "1.2.3"
 '@
+# Keep the fixture independent of Git checkout line endings.
+$text = $text -replace "`r?`n", "`n"
 $expected = $text.Replace('name = "codex-cli"' + "`n" + 'version = "0.0.0"', 'name = "codex-cli"' + "`n" + 'version = "0.162.1"')
 $actual = Get-CodexReleaseLock -Text $text -Packages $packages -WorkspaceMembers @('local-cli', 'local-extra')
 if ($actual -cne $expected) { throw 'Workspace-only lock update failed or external package changed.' }
