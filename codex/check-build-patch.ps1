@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 $checkRoot = Join-Path ([IO.Path]::GetTempPath()) ('codex-patch-check-' + [guid]::NewGuid())
 $source = Join-Path $checkRoot 'source'
 $patch = Join-Path $checkRoot 'inline-word-completion.patch'
@@ -22,20 +22,13 @@ try {
     Invoke-CheckGit -C $source config core.autocrlf false
     [IO.File]::WriteAllText((Join-Path $source 'a.txt'), "base`n")
     [IO.File]::WriteAllText((Join-Path $source 'unchanged.txt'), "keep`n")
-    [IO.File]::WriteAllText((Join-Path $source '0-metadata.txt'), "old`n")
     Invoke-CheckGit -C $source add -- .
     Invoke-CheckGit -C $source -c user.name='Codex Lab' -c user.email='lab@example.invalid' commit --quiet -m base
     $base = Invoke-CheckGit -C $source rev-parse HEAD
     [IO.File]::WriteAllText((Join-Path $source 'a.txt'), "changed`n")
     [IO.File]::WriteAllText((Join-Path $source 'b.txt'), "new`n")
-    [IO.File]::WriteAllText((Join-Path $source '0-metadata.txt'), "release`n")
     Invoke-CheckGit -C $source add --intent-to-add -- .
     Invoke-CheckGit -C $source diff --binary "--output=$patch" $base
-    $parts = [regex]::Split([IO.File]::ReadAllText($patch), '(?m)(?=^diff --git )')
-    $metadata = ($parts | Where-Object { $_.StartsWith('diff --git a/0-metadata.txt ') }) -join ''
-    $feature = ($parts | Where-Object { -not $_.StartsWith('diff --git a/0-metadata.txt ') }) -join ''
-    [IO.File]::WriteAllText((Join-Path $checkRoot 'release-metadata-0.161.0.patch'), $metadata)
-    [IO.File]::WriteAllText($patch, $feature)
     Invoke-CheckGit -C $source reset --hard --quiet $base
 
     # Execute the real validation/apply code with a tiny base, stopping before Cargo.

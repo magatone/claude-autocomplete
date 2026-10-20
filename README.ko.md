@@ -23,11 +23,20 @@ Claude Code 터미널 세션에서 다음을 입력합니다.
 
 마켓플레이스를 추가할지 물으면 `y`를 누르고, 설치 범위를 고릅니다 (기본값은 user 범위).
 
-### Codex CLI (버전 동기화 개발 중)
+### Codex CLI (`codex-auto`, 고정 버전)
 
-codex-auto는 기존 Codex의 계정·설정·세션을 공유하면서 기본 입력창에 영어 단어 자동완성을 추가하는 별도 수정 CLI다. 설치된 공식 버전에 맞는 사전 빌드 파일을 다운로드·검증·캐시하며, codex-auto update는 기존 npm 설치를 함께 갱신한다.
+**`codex-auto`로 기본 입력창에 영어 단어 자동완성이 있는 Codex CLI를 사용할 수 있습니다. 이 배포는 Codex 0.161.0 고정 버전이며 자동 업데이트를 지원하지 않습니다.** 공식 `codex`를 업데이트해도 `codex-auto`는 바뀌지 않으며, `codex-auto update` 명령도 지원하지 않습니다.
 
-**로컬 Windows·WSL 검사는 통과했으며 최초 GitHub 빌드·배포 및 Mac 실기기 검증은 아직 남아 있다.** 일반 사용자는 Python·Git·Rust·컴파일러가 필요 없다. 새 ZIP 설치 안내와 정확한 검증 범위는 [Codex 안내](codex/README.ko.md)를 참고한다. 아래 오타 교정·단축어는 Claude 플러그인 기능이다.
+같은 컴퓨터의 기존 Codex 계정·설정·세션을 공유합니다. 영어 두 글자 이상 입력 후 ↑↓로 선택하고 Tab으로 삽입합니다. Enter는 메시지를 전송합니다. 아래 오타 교정·저장 단축어는 Claude 플러그인 기능입니다.
+
+이번 배포는 **소스 배포**로, 빌드 도구가 필요하며 컴파일된 실행 파일은 포함하지 않습니다. Windows는 로컬 검증했으며 Mac 빌드 안내는 미검증입니다. [Windows/macOS 설치 절차](codex/README.ko.md)를 완료한 뒤 실행합니다.
+
+```sh
+codex-auto --version
+codex-auto
+```
+
+예상 버전은 `codex-cli 0.161.0`입니다. 버전 동기화·자동 업데이트 실험은 잠시 중단하고 [`feat/codex-version-sync`](https://github.com/magatone/claude-autocomplete/tree/feat/codex-version-sync)와 [Draft PR #2](https://github.com/magatone/claude-autocomplete/pull/2)에 보존했습니다.
 
 ## 사용 방법
 
@@ -86,6 +95,8 @@ codex-auto는 기존 Codex의 계정·설정·세션을 공유하면서 기본 �
 일상 단어도 함께 보입니다. 단어를 추가하려면 `data/terms/` 안의 `.txt` 파일에 한 줄에 하나씩 적으면 됩니다.
 
 ## 업데이트 내역
+
+- **0.6.1** 사용 가능한 고정 버전 `codex-auto` CLI 안내 및 자동 업데이트 실험 중단. 사전 빌드 파일 없는 소스 배포.
 
 - **0.6.0** Codex를 위한 별도 CLI 구현: 기본 입력창 소스를 수정한 실험판을 `codex-auto` 명령으로 실행.
 
